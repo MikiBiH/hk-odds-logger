@@ -1,0 +1,33 @@
+name: HKJC Odds Logger
+
+on:
+  schedule:
+    # HK-Meetings (UTC): Tag ~04:30-10:30, Abend (HV) ~11:15-15:15,
+    # Spezialfälle wie 16:00-HKT-Starts deckt der 08:00-Trigger ab.
+    # Der Logger beendet sich in Sekunden, wenn nichts ansteht.
+    - cron: '20 4 * * *'
+    - cron: '0 8 * * *'
+    - cron: '10 11 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: hkjc-logger
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Git-Identität
+        run: |
+          git config user.name  "odds-logger"
+          git config user.email "odds-logger@users.noreply.github.com"
+      - name: Loggen
+        env:
+          GIT_PUSH: "1"
+        run: python3 logger.py
